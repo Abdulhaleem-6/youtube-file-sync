@@ -1,36 +1,37 @@
 {
-  "name": "youtube-file-sync",
-  "version": "0.1.0",
-  "bin": {
-    "youtube-file-sync": "bin/youtube-file-sync.js"
-  },
-  "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
-    "test": "jest",
-    "cdk": "cdk"
-  },
-  "devDependencies": {
-    "@types/aws-lambda": "^8.10.156",
-    "@types/jest": "^29.5.14",
-    "@types/node": "22.7.9",
-    "aws-cdk": "2.1030.0",
-    "jest": "^29.7.0",
-    "ts-jest": "^29.2.5",
-    "ts-node": "^10.9.2",
-    "typescript": "~5.6.3"
-  },
-  "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.914.0",
-    "@aws-sdk/client-s3": "^3.914.0",
-    "@aws-sdk/client-sqs": "^3.914.0",
-    "@aws-sdk/lib-dynamodb": "^3.914.0",
-    "@aws-sdk/lib-storage": "^3.914.0",
-    "@distube/ytdl-core": "^4.16.12",
-    "aws-cdk-lib": "^2.215.0",
-    "aws-lambda": "^1.0.7",
-    "constructs": "^10.4.2",
-    "dotenv": "^17.2.3",
-    "googleapis": "^164.1.0"
-  }
+	"name": "youtube-file-sync",
+	"version": "0.1.0",
+	"bin": {
+		"youtube-file-sync": "bin/youtube-file-sync.js"
+	},
+	"scripts": {
+		"build": "tsc",
+		"watch": "tsc -w",
+		"test": "jest",
+		"cdk": "cdk"
+	},
+	"devDependencies": {
+		"@types/aws-lambda": "^8.10.156",
+		"@types/jest": "^29.5.14",
+		"@types/node": "22.7.9",
+		"aws-cdk": "2.1030.0",
+		"esbuild": "^0.25.11",
+		"jest": "^29.7.0",
+		"ts-jest": "^29.2.5",
+		"ts-node": "^10.9.2",
+		"typescript": "~5.6.3"
+	},
+	"dependencies": {
+		"@aws-sdk/client-dynamodb": "^3.914.0",
+		"@aws-sdk/client-s3": "^3.914.0",
+		"@aws-sdk/client-sqs": "^3.914.0",
+		"@aws-sdk/lib-dynamodb": "^3.914.0",
+		"@aws-sdk/lib-storage": "^3.914.0",
+		"@distube/ytdl-core": "^4.16.12",
+		"aws-cdk-lib": "^2.215.0",
+		"aws-lambda": "^1.0.7",
+		"constructs": "^10.4.2",
+		"dotenv": "^17.2.3",
+		"googleapis": "^164.1.0"
+	}
 }

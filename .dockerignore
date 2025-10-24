@@ -1,0 +1,52 @@
+# Node modules and build output
+node_modules
+dist
+build
+cdk.out
+
+# Test files and local artifacts
+*.test.ts
+*.test.js
+test/
+__tests__/
+*.spec.ts
+*.spec.js
+coverage/
+
+# Temporary or local dev files
+*.log
+*.mp4
+*.tmp
+*.swp
+.DS_Store
+.env
+.env.*
+npm-debug.log
+yarn-error.log
+
+# Git and editor metadata
+.git
+.gitignore
+.vscode
+.idea
+
+# AWS CDK files
+cdk.context.json
+cdk.out
+lib/
+bin/
+
+# Test files
+lambda/test-download.ts
+lambda/test-video.mp4
+
+# Layers (not needed in container)
+layers/
+
+# CDK TypeScript files
+*.d.ts
+tsconfig.json
+
+# Dockerfile itself
+Dockerfile
+.dockerignore
