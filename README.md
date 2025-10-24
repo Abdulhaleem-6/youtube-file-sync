@@ -50,24 +50,24 @@ The application uses a decoupled, event-driven architecture:
 
 ## Project Structure
 
+```
 .
 ├── bin/
-│ └── youtube-file-sync.ts # CDK App entry point
+│   └── youtube-file-sync.ts      # CDK App entry point
 ├── lambda/
-│ ├── youtube-search.ts # Lambda: Finds new videos and enqueues jobs
-│ └── youtube-downloader.ts # Lambda: Downloads and uploads videos
+│   ├── youtube-search.ts          # Lambda: Finds new videos and enqueues jobs
+│   └── youtube-downloader.ts      # Lambda: Downloads and uploads videos
 ├── lib/
-│ └── youtube-file-sync-stack.ts # Main CDK stack definition
-├── test/ # Jest tests
+│   └── youtube-file-sync-stack.ts  # Main CDK stack definition
+├── test/                          # Jest tests
 ├── .dockerignore
 ├── .gitignore
-├── cdk.json # CDK project configuration
-├── Dockerfile # Builds the 'downloader' Lambda image
+├── cdk.json                       # CDK project configuration
+├── Dockerfile                     # Builds the 'downloader' Lambda image
 ├── jest.config.js
 ├── package.json
 └── tsconfig.json
-
----
+```
 
 ## Setup and Deployment
 
@@ -92,7 +92,7 @@ Before deploying, you may need to set up the following resources in your AWS acc
 1.  **Clone & Install:**
 
     ```sh
-    git clone <your-repo-url>
+    git clone https://github.com/Abdulhaleem-6/youtube-file-sync.git
     cd youtube-file-sync
     npm install
     ```
@@ -119,6 +119,11 @@ Before deploying, you may need to set up the following resources in your AWS acc
     cdk deploy
     ```
 
-The CDK will now build your TypeScript, build the Docker image, push it to your private ECR, and deploy all the AWS resources.
+The CDK will now build your TypeScript, create the Docker image, push it to your private ECR, and deploy all the AWS resources.
 
-Example End-to-End Flow 1. EventBridge triggers the youtube-search Lambda hourly. 2. The Lambda queries YouTube and sends new video IDs to SQS. 3. The SQS queue invokes youtube-downloader. 4. The downloader fetches cookies, downloads the video, uploads it to S3, and logs it in DynamoDB.
+### Example End-to-End Flow
+
+1. **EventBridge** triggers the `youtube-search` Lambda hourly.
+2. The Lambda queries YouTube and sends new video IDs to **SQS**.
+3. The SQS queue invokes the `youtube-downloader`.
+4. The downloader fetches cookies, downloads the video, uploads it to **S3**, and logs it in **DynamoDB**.
