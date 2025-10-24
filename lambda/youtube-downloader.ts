@@ -160,6 +160,24 @@ async function attemptDownload(
 		});
 
 		await upload.done();
+		console.log(
+			`✅ [VIDEO DOWNLOAD SUCCESS] Video successfully downloaded and uploaded to S3:
+				• S3 Key: ${s3Key}
+				• Player Client: ${playerClient}
+				• Temp File: ${tempFile}
+				• File Size: ${(stats.size / (1024 * 1024)).toFixed(2)} MB
+				• Timestamp: ${new Date().toISOString()}`,
+		);
+	} catch (err: any) {
+		console.error(
+			`❌ [VIDEO DOWNLOAD FAILED]
+			• URL: ${videoUrl}
+			• Player Client: ${playerClient}
+			• S3 Key: ${s3Key}
+			• Error: ${err.message}
+			• Timestamp: ${new Date().toISOString()}`,
+		);
+		throw err;
 	} finally {
 		// Cleanup temporary file
 		if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
@@ -208,12 +226,21 @@ export const handler: SQSHandler = async (event: SQSEvent) => {
 					ConditionExpression: 'attribute_not_exists(videoId)',
 				}),
 			);
+			console.log(
+				`🎉 [HANDLER] Video record stored in DynamoDB:
+				• Video ID: ${videoId}
+				• Title: ${title}
+				• S3 Key: ${s3Key}
+				• Downloaded At: ${new Date().toISOString()}`,
+			);
 		} catch (err: any) {
-			console.error('Processing failed:', {
-				videoId,
-				title,
-				error: err.message,
-			});
+			console.error(
+				`💥 [HANDLER PROCESSING FAILED]
+				• Video ID: ${videoId || 'unknown'}
+				• Title: ${title || 'unknown'}
+				• Error: ${err.message}
+				• Timestamp: ${new Date().toISOString()}`,
+			);
 			throw err;
 		}
 	}

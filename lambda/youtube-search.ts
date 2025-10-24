@@ -1,20 +1,18 @@
 import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
 import { google } from 'googleapis';
 
+// Initialize SQS client
 const sqs = new SQSClient({});
 
+// Lambda function handler
 export const handler = async () => {
 	try {
+		// Retrieve environment variables
 		const query = process.env.SEARCH_QUERY!;
 		const apiKey = process.env.YOUTUBE_API_KEY!;
 		const queueUrl = process.env.QUEUE_URL!;
 
-		console.log(`--- DEBUGGING ---`);
-		console.log(`YOUTUBE_API_KEY: [${apiKey}]`);
-		console.log(`QUEUE_URL: [${queueUrl}]`);
-		console.log(`SEARCH_QUERY: [${query}]`);
-		console.log(`-------------------`);
-
+		// Validate environment variables
 		if (!apiKey || apiKey.trim() === '') {
 			throw new Error(
 				'FATAL: YOUTUBE_API_KEY environment variable is not set!',
@@ -27,13 +25,13 @@ export const handler = async () => {
 			throw new Error('FATAL: SEARCH_QUERY environment variable is not set!');
 		}
 
+		// Initialize YouTube API client
 		const youtube = google.youtube({
 			version: 'v3',
 			auth: apiKey,
 		});
 
-		console.log(`Searching YouTube for '${query}'`);
-
+		// Search YouTube for videos based on the query
 		const res = await youtube.search.list({
 			key: apiKey,
 			part: ['snippet'],
@@ -46,17 +44,16 @@ export const handler = async () => {
 			videoDuration: 'short',
 			maxResults: 3,
 		});
-		console.log('🚀 ~ handler ~ res:', res);
 
+		// Extract video items from the response
 		const videos = res.data.items ?? [];
-		console.log('🚀 ~ handler ~ videos:', videos);
 
+		// Send each video to SQS
 		for (const v of videos) {
-			console.log('🚀 ~ handler ~ v:', v);
 			const videoId = v.id?.videoId!;
 			const title = v.snippet?.title ?? 'Untitled';
 
-			console.log(`Sending video ${title} (${videoId}) to SQS...`);
+			// Send video details to SQS
 			await sqs.send(
 				new SendMessageCommand({
 					QueueUrl: queueUrl,
@@ -67,7 +64,7 @@ export const handler = async () => {
 
 		console.log('✅ Finished enqueueing videos');
 	} catch (error) {
-		console.error('Error processing YouTube search???:', error);
+		console.error('Error processing YouTube search:', error);
 		throw error;
 	}
 };
