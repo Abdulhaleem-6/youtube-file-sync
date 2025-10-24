@@ -24,6 +24,11 @@ export class YoutubeFileSyncStack extends cdk.Stack {
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			autoDeleteObjects: true,
 			bucketName: 'youtube-file-sync-videos-bucket',
+			lifecycleRules: [
+				{
+					expiration: cdk.Duration.days(1),
+				},
+			],
 		});
 
 		// DynamoDB table for tracking synced videos

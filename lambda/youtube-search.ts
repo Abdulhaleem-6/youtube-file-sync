@@ -31,6 +31,7 @@ export const handler = async () => {
 			auth: apiKey,
 		});
 
+		const SEARCH_WINDOW_MS = 2 * 60 * 60 * 1000;
 		// Search YouTube for videos based on the query
 		const res = await youtube.search.list({
 			key: apiKey,
@@ -38,9 +39,7 @@ export const handler = async () => {
 			q: query,
 			type: ['video'],
 			order: 'date',
-			publishedAfter: new Date(
-				Date.now() - 30 * 24 * 3600 * 1000,
-			).toISOString(),
+			publishedAfter: new Date(Date.now() - SEARCH_WINDOW_MS).toISOString(),
 			videoDuration: 'short',
 			maxResults: 3,
 		});
