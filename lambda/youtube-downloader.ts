@@ -7,22 +7,56 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 import { SQSHandler, SQSEvent } from 'aws-lambda';
 import { Upload } from '@aws-sdk/lib-storage';
+import {
+	CloudWatchClient,
+	PutMetricDataCommand,
+	StandardUnit,
+} from '@aws-sdk/client-cloudwatch';
+
 import { spawn } from 'child_process';
 import * as fs from 'fs';
 import { pipeline } from 'stream/promises';
+import { validateEnv } from './utils/validate-env';
+
+validateEnv([
+	'BUCKET_NAME',
+	'TABLE_NAME',
+	'COOKIE_S3_KEY',
+	'COOKIE_MAX_AGE_HOURS',
+]);
+
+// Configuration constants
+const BUCKET_NAME = process.env.BUCKET_NAME!;
+const TABLE_NAME = process.env.TABLE_NAME!;
+const COOKIE_S3_KEY = process.env.COOKIE_S3_KEY!;
+const COOKIE_MAX_AGE_HOURS = parseInt(process.env.COOKIE_MAX_AGE_HOURS!);
+const COOKIE_LOCAL_PATH = '/tmp/cookies.txt';
+const COOKIE_TMP_PATH = '/tmp/cookies.txt.tmp';
 
 // Initialize AWS clients
 const s3Client = new S3Client({});
 const ddbClient = new DynamoDBClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
+const cloudwatch = new CloudWatchClient({});
 
-// Configuration constants
-const BUCKET_NAME = process.env.BUCKET_NAME!;
-const TABLE_NAME = process.env.TABLE_NAME!;
-const COOKIE_S3_KEY = process.env.COOKIE_S3_KEY;
-const COOKIE_LOCAL_PATH = '/tmp/cookies.txt';
-const COOKIE_TMP_PATH = '/tmp/cookies.txt.tmp';
-const COOKIE_MAX_AGE_HOURS = Number(process.env.COOKIE_MAX_AGE_HOURS || '12');
+async function recordMetric(
+	name: string,
+	value: number,
+	unit: StandardUnit = StandardUnit.Count,
+) {
+	await cloudwatch.send(
+		new PutMetricDataCommand({
+			Namespace: 'YoutubeFileSync',
+			MetricData: [{ MetricName: name, Unit: unit, Value: value }],
+		}),
+	);
+}
+
+function log(event: string, data: Record<string, any> = {}) {
+	console.log(
+		JSON.stringify({ event, timestamp: new Date().toISOString(), ...data }),
+	);
+}
 
 // Ensures cookie file is present and up-to-date
 async function ensureCookieFileIfConfigured(): Promise<void> {
@@ -186,15 +220,22 @@ async function attemptDownload(
 
 // Lambda handler for processing SQS messages
 export const handler: SQSHandler = async (event: SQSEvent) => {
+	log('BatchStart', { recordCount: event.Records.length });
 	for (const record of event.Records) {
 		let videoId: string = '';
 		let title: string = '';
 
 		try {
 			const body = JSON.parse(record.body);
+			if (!body || !body.videoId) {
+				log('InvalidMessage', {
+					recordId: record.messageId,
+					body: record.body,
+				});
+				return;
+			}
 			({ videoId, title } = body);
 
-			if (!videoId) throw new Error('Missing videoId in message');
 
 			// Check if video already exists in DynamoDB
 			const existing = await ddbDocClient.send(
@@ -207,6 +248,7 @@ export const handler: SQSHandler = async (event: SQSEvent) => {
 			}
 
 			// Process video download
+			const start = Date.now();
 			const safeTitle = title.replace(/[^a-z0-9 -]/gi, '_').substring(0, 100);
 			const s3Key = `videos/${safeTitle}_${videoId}.mp4`;
 
@@ -226,22 +268,28 @@ export const handler: SQSHandler = async (event: SQSEvent) => {
 					ConditionExpression: 'attribute_not_exists(videoId)',
 				}),
 			);
-			console.log(
-				`🎉 [HANDLER] Video record stored in DynamoDB:
-				• Video ID: ${videoId}
-				• Title: ${title}
-				• S3 Key: ${s3Key}
-				• Downloaded At: ${new Date().toISOString()}`,
-			);
+			const duration = (Date.now() - start) / 1000;
+
+			await recordMetric('VideosDownloaded', 1);
+			await recordMetric('DownloadDuration', duration, 'Seconds');
+			log('DownloadSuccess', {
+				videoId,
+				duration,
+				s3Key,
+				bucket: BUCKET_NAME,
+			});
+
 		} catch (err: any) {
-			console.error(
-				`💥 [HANDLER PROCESSING FAILED]
-				• Video ID: ${videoId || 'unknown'}
-				• Title: ${title || 'unknown'}
-				• Error: ${err.message}
-				• Timestamp: ${new Date().toISOString()}`,
-			);
-			throw err;
+			await recordMetric('DownloadFailures', 1);
+			log('DownloadError', {
+				videoId: videoId || '(unknown)',
+				recordId: record.messageId,
+				body: record.body,
+				error: err.message,
+				stack: err.stack,
+			});
+
 		}
 	}
+	log('BatchComplete');
 };

@@ -38,8 +38,15 @@ export class YoutubeFileSyncStack extends cdk.Stack {
 		});
 
 		// Queue for handling video download requests
+		const dlq = new Queue(this, 'VideoDownloadDLQ', {
+			retentionPeriod: cdk.Duration.days(14),
+		});
 		const videoQueue = new Queue(this, 'VideoDownloadQueue', {
-			visibilityTimeout: cdk.Duration.minutes(15),
+			visibilityTimeout: cdk.Duration.minutes(20),
+			deadLetterQueue: {
+				maxReceiveCount: 3,
+				queue: dlq,
+			},
 		});
 
 		// Lambda function for searching YouTube videos
@@ -80,7 +87,6 @@ export class YoutubeFileSyncStack extends cdk.Stack {
 				environment: {
 					BUCKET_NAME: videosBucket.bucketName,
 					TABLE_NAME: stateTable.tableName,
-					PROXY_PARAMETER_NAME: '/youtube-sync/proxy-list',
 					COOKIE_S3_KEY,
 					COOKIE_MAX_AGE_HOURS,
 				},
@@ -92,20 +98,10 @@ export class YoutubeFileSyncStack extends cdk.Stack {
 		stateTable.grantReadWriteData(youtubeDownloaderLambda);
 		videoQueue.grantSendMessages(youtubeSearchLambda);
 		videoQueue.grantConsumeMessages(youtubeDownloaderLambda);
-
-		// Grant access to SSM parameter for proxy list
-		const parameterArn = cdk.Arn.format(
-			{
-				service: 'ssm',
-				resource: 'parameter',
-				resourceName: 'youtube-sync/proxy-list',
-			},
-			this,
-		);
 		youtubeDownloaderLambda.addToRolePolicy(
 			new iam.PolicyStatement({
-				actions: ['ssm:GetParameter'],
-				resources: [parameterArn],
+				actions: ['cloudwatch:PutMetricData'],
+				resources: ['*'],
 			}),
 		);
 

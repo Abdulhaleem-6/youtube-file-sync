@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY package*.json ./
 RUN npm ci
-COPY lambda/youtube-downloader.ts ./lambda/
+COPY lambda/ ./lambda
 
 RUN npx esbuild lambda/youtube-downloader.ts \
     --bundle --platform=node --target=node20 \
