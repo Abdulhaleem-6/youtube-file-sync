@@ -65,7 +65,6 @@ flowchart TD
   - Amazon SQS (for job queueing)
   - Amazon EventBridge (for scheduling)
   - AWS IAM
-  - AWS SSM Parameter Store (for proxy config)
 - **Lambda Runtimes:**
   - **YoutubeSearchFunction** – Runs on `Node.js 20.x` managed runtime.
   - **YoutubeDownloaderFunction** – Runs on a custom Docker image based on `public.ecr.aws/lambda/nodejs:20-arm64`, optimized for performance and ARM cost efficiency.
