@@ -10,12 +10,12 @@ The application uses a decoupled, event-driven architecture:
 
 ```mermaid
 flowchart TD
-  A[EventBridge Rule<br>(Hourly Trigger)] --> B[YouTube Search Lambda]
-  B --> C[SQS Queue<br>(Download Jobs)]
-  C --> D[YouTube Downloader Lambda<br>(Custom arm64 Docker)]
-  D --> E[S3 Bucket<br>(Stores Videos & Cookies)]
-  D --> F[DynamoDB Table<br>(Tracks Downloaded Video IDs)]
-  D --> G[CloudWatch Metrics<br>(Performance & Errors)]
+  A[EventBridge Rule\n(Hourly Trigger)] --> B[YouTube Search Lambda]
+  B --> C[SQS Queue\n(Download Jobs)]
+  C --> D[YouTube Downloader Lambda\n(Custom arm64 Docker)]
+  D --> E[S3 Bucket\n(Stores Videos & Cookies)]
+  D --> F[DynamoDB Table\n(Tracks Downloaded Video IDs)]
+  D --> G[CloudWatch Metrics\n(Performance & Errors)]
 ```
 
 **Workflow Description:**
