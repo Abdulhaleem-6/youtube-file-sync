@@ -9,3 +9,6 @@ cdk.out
 
 .env
 output.json
+
+cookies.txt
+Ds_Store
