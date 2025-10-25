@@ -135,7 +135,7 @@ Before deploying, you may need to set up the following resources in your AWS acc
     ```
 
 2.  **Set Deploy-Time Variables:**
-    Your stack reads environment variables on deployment for the `Youtube` Lambda. Create a `.env` file or export them in your shell:
+    Your stack reads environment variables on deployment for the `youtube-search` Lambda. Create a `.env` file or export them in your shell:
 
     ```ini
     # .env
